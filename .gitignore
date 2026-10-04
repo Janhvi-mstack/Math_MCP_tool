@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# runtime artefacts
+store_data/
+logs/
+*.jsonl
+
+# environments and secrets
+.env
+.env.*
+venv/
+.venv/
+*.pem
+*.key
+
+.DS_Store
+.idea/
+.vscode/
