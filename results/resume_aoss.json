@@ -1,0 +1,52 @@
+{
+  "run": "ab4215e8",
+  "backend_expected": "aoss",
+  "space_id": "space_54a76e0d35f14c6e",
+  "campaign_id": "camp_96071894779f47e2",
+  "restart_gap_seconds": 4.21,
+  "campaign_read_seconds": 1.09,
+  "n_pass": 8,
+  "n_total": 8,
+  "checks": [
+    {
+      "check": "phase 1 selected aoss",
+      "ok": true,
+      "detail": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]"
+    },
+    {
+      "check": "phase 1 recorded 6 experiments",
+      "ok": true,
+      "detail": "best_y=45.0 campaign=camp_96071894779f47e2"
+    },
+    {
+      "check": "phase 1 died uncleanly",
+      "ok": true,
+      "detail": "returncode=-9"
+    },
+    {
+      "check": "phase 2 is a new process on the same backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]"
+    },
+    {
+      "check": "phase 2 read the campaign back",
+      "ok": true,
+      "detail": "6 observations in 1.09 s, 4.21 s after the kill"
+    },
+    {
+      "check": "phase 2 proposed experiment 7",
+      "ok": true,
+      "detail": "acquisition=ei"
+    },
+    {
+      "check": "experiment 7 recorded, continuing from 6",
+      "ok": true,
+      "detail": "n=7 best_y=61.0"
+    },
+    {
+      "check": "nothing was read from or written to local files",
+      "ok": true,
+      "detail": "/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-resume-je68azr9"
+    }
+  ]
+}

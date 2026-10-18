@@ -3,7 +3,12 @@ import os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 suites = ["test_stage12.py", "test_stage3.py", "test_stage56.py",
           "test_stage4.py", "test_stage7.py",
-          "test_vendored.py", "test_metrics.py", "test_mcp.py"]
+          "test_vendored.py", "test_metrics.py", "test_mcp.py",
+          # storage: backend selection, then the AOSS backend itself. All
+          # offline -- the AOSS suites drive an in-memory stand-in, so they
+          # need no credentials, no network and cost nothing.
+          "test_backend.py", "test_aoss_signing.py", "test_aoss_mappings.py",
+          "test_aoss_store.py", "test_aoss_doctests.py"]
 total_p = total_f = 0
 bad = []
 for s in suites:

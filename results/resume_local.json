@@ -1,0 +1,47 @@
+{
+  "run": "99e4cab5",
+  "backend_expected": "local",
+  "space_id": "space_98790979bd474f67",
+  "campaign_id": "camp_8bbe7c9f171a4a03",
+  "restart_gap_seconds": 0.75,
+  "campaign_read_seconds": 0.0,
+  "n_pass": 7,
+  "n_total": 7,
+  "checks": [
+    {
+      "check": "phase 1 selected local",
+      "ok": true,
+      "detail": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-resume-eiuvrs8t"
+    },
+    {
+      "check": "phase 1 recorded 6 experiments",
+      "ok": true,
+      "detail": "best_y=45.0 campaign=camp_8bbe7c9f171a4a03"
+    },
+    {
+      "check": "phase 1 died uncleanly",
+      "ok": true,
+      "detail": "returncode=-9"
+    },
+    {
+      "check": "phase 2 is a new process on the same backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-resume-eiuvrs8t"
+    },
+    {
+      "check": "phase 2 read the campaign back",
+      "ok": true,
+      "detail": "6 observations in 0.00 s, 0.75 s after the kill"
+    },
+    {
+      "check": "phase 2 proposed experiment 7",
+      "ok": true,
+      "detail": "acquisition=ei"
+    },
+    {
+      "check": "experiment 7 recorded, continuing from 6",
+      "ok": true,
+      "detail": "n=7 best_y=61.0"
+    }
+  ]
+}

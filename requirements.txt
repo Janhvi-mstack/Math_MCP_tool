@@ -1,3 +1,6 @@
+# The maths. Pinned to the versions the benchmark in MCP_TOOLS.md was measured
+# on -- Gaussian process fitting is sensitive to the build, so an unpinned
+# upgrade moves the numbers.
 torch>=1.13,<2
 botorch>=0.8,<0.9
 gpytorch>=1.10,<1.11
@@ -5,3 +8,14 @@ scikit-learn>=1.0
 numpy>=1.22
 scipy>=1.7
 rdkit>=2022.9
+
+# The AOSS storage backend adds NOTHING to this list, on purpose.
+#
+# SigV4 is implemented against the standard library in maths_tools/aoss/
+# (hashlib, hmac, urllib), so the tool does not grow a boto3 or requests
+# dependency by gaining a backend -- which matters for a container image and
+# for the dependency review when this goes into a shared repo.
+#
+# This is asserted, not just claimed: test_aoss_imports_only_stdlib in
+# maths_tools/tests/test_aoss_store.py fails if an import outside the standard
+# library appears in the backend.

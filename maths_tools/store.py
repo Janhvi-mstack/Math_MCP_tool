@@ -17,14 +17,20 @@ breaks across library upgrades and makes unpickling a security question in a
 product. Nothing stops a cache being added later for speed; the JSON stays
 authoritative.
 
-The backend is pluggable. LocalJSONStore is the default so the endpoint runs
-standalone with no infrastructure; S3, Azure Blob or Elasticsearch slot in
-behind the same three methods.
+The backend is pluggable behind those three methods. Two ship:
+
+    AOSSStore         AWS OpenSearch Serverless -- see maths_tools/aoss/
+    LocalJSONStore    one file per object, no infrastructure at all
+
+`select_backend` picks between them from the environment and says which one it
+picked. Local JSON remains fully supported, not a degraded mode: it is what
+runs when nobody has credentials, and it is what the tests use.
 """
 from __future__ import annotations
 
 import json
 import os
+import sys
 import threading
 import time
 import uuid
@@ -123,13 +129,164 @@ class MemoryStore(CampaignStore):
         return sorted(self._d.get(kind, {}))
 
 
+# --------------------------------------------------------------- selection
+
+AOSS = "aoss"
+LOCAL = "local-json"
+
+#: Required for the AOSS backend. All present -> AOSS. None present -> local
+#: JSON. Some but not all is a misconfiguration and raises, because that is
+#: precisely how a production deployment ends up writing to a local file.
+_AOSS_REQUIRED = ("AOSS_ENDPOINT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
+
+#: Set to "aoss" or "local" to override the automatic choice. An explicit
+#: override is fine; a silent fallback is not.
+_BACKEND_OVERRIDE = "BEACON_STORE_BACKEND"
+
+
+def choose_backend(env: Optional[dict] = None) -> str:
+    """Decide which backend the environment selects, without building it.
+
+    Parameters
+    ----------
+    env : dict, optional
+        Mapping to read instead of :data:`os.environ`. Used by tests.
+
+    Returns
+    -------
+    str
+        Either :data:`AOSS` or :data:`LOCAL`.
+
+    Raises
+    ------
+    StoreError
+        If ``BEACON_STORE_BACKEND`` holds an unrecognised value, or if the
+        AOSS variables are present but incomplete.
+
+    Examples
+    --------
+    >>> choose_backend({})
+    'local-json'
+    >>> choose_backend({"AOSS_ENDPOINT": "https://h", "AWS_ACCESS_KEY_ID": "a",
+    ...                 "AWS_SECRET_ACCESS_KEY": "s"})
+    'aoss'
+    >>> choose_backend({"BEACON_STORE_BACKEND": "local",
+    ...                 "AOSS_ENDPOINT": "https://h", "AWS_ACCESS_KEY_ID": "a",
+    ...                 "AWS_SECRET_ACCESS_KEY": "s"})
+    'local-json'
+    """
+    src = os.environ if env is None else env
+
+    override = (src.get(_BACKEND_OVERRIDE) or "").strip().lower()
+    if override:
+        if override in (AOSS, "opensearch"):
+            return AOSS
+        if override in (LOCAL, "local", "json"):
+            return LOCAL
+        raise StoreError(
+            f"{_BACKEND_OVERRIDE}={override!r} is not recognised; "
+            f"use {AOSS!r} or 'local'")
+
+    present = [k for k in _AOSS_REQUIRED if (src.get(k) or "").strip()]
+    if not present:
+        return LOCAL
+    if len(present) == len(_AOSS_REQUIRED):
+        return AOSS
+
+    missing = [k for k in _AOSS_REQUIRED if k not in present]
+    raise StoreError(
+        "AOSS is partially configured: " + ", ".join(present) + " set, " +
+        ", ".join(missing) + " missing. Refusing to fall back to local JSON "
+        "silently -- set the missing variable(s), or set "
+        f"{_BACKEND_OVERRIDE}=local to use local JSON deliberately.")
+
+
+def _log_backend(line: str) -> None:
+    """Announce the selected backend on stderr.
+
+    stderr, never stdout: the MCP server speaks stdio JSON-RPC and a stray
+    line on stdout corrupts the protocol stream.
+    """
+    print(f"[maths_tools] store backend: {line}", file=sys.stderr, flush=True)
+
+
+def select_backend(env: Optional[dict] = None,
+                   announce: bool = True) -> CampaignStore:
+    """Build the store the environment selects, and say which one it is.
+
+    AOSS when its variables are present, local JSON otherwise. The choice is
+    logged either way; a backend that changes without anyone noticing is the
+    failure this function exists to prevent.
+
+    Parameters
+    ----------
+    env : dict, optional
+        Mapping to read instead of :data:`os.environ`.
+    announce : bool, optional
+        Write the one-line selection notice to stderr (default True).
+
+    Returns
+    -------
+    CampaignStore
+        An :class:`~maths_tools.aoss.store.AOSSStore` or a
+        :class:`LocalJSONStore`.
+
+    Raises
+    ------
+    StoreError
+        If the configuration is incomplete, or if AOSS is selected and its
+        indices cannot be reached. It does **not** fall back to local JSON on
+        an AOSS failure -- see Notes.
+
+    Notes
+    -----
+    Selecting AOSS creates the three indices with their explicit mappings if
+    they are absent, before anything is written. AOSS infers a mapping from
+    the first document it receives and guesses types wrong, so the indices
+    have to exist first.
+
+    That makes startup fail when the collection is unreachable, which is
+    deliberate. The alternatives are worse: falling back to local JSON hides a
+    broken deployment, and writing anyway lets AOSS invent the mapping.
+
+    The log line carries the region and the index names. It never carries the
+    endpoint host, the access key, or any secret.
+    """
+    kind = choose_backend(env)
+
+    if kind == AOSS:
+        from .aoss import AOSSStore, ConfigError
+        from .aoss import load as load_aoss_config
+        try:
+            cfg = load_aoss_config(env)
+            store = AOSSStore(cfg)
+            state = store.ensure_indices()
+        except ConfigError as exc:
+            raise StoreError(f"AOSS configuration is unusable: {exc}") from exc
+        if announce:
+            _log_backend(
+                "aoss (AWS OpenSearch Serverless)  region=%s  indices=%s" % (
+                    cfg.region,
+                    ", ".join("%s[%s]" % (name, state.get(k, "?"))
+                              for k, name in sorted(
+                                  store._indices.items(), key=lambda kv: kv[1]))))
+        return store
+
+    store = LocalJSONStore()
+    if announce:
+        _log_backend(
+            "local JSON (standalone; no AOSS variables in the environment)  "
+            "root=%s" % store.root)
+    return store
+
+
 _default: Optional[CampaignStore] = None
 
 
 def default_store() -> CampaignStore:
     global _default
     if _default is None:
-        _default = LocalJSONStore()
+        _default = select_backend()
     return _default
 
 

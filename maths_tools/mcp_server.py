@@ -605,6 +605,10 @@ def handle(req: dict) -> Optional[dict]:
 
 
 def main():
+    # Resolve the backend before the first request rather than lazily on the
+    # first call that touches it, so the selection is logged at startup and
+    # a misconfiguration fails here instead of mid-campaign.
+    store()
     for line in sys.stdin:
         line = line.strip()
         if not line:

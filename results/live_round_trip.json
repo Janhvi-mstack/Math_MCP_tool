@@ -1,0 +1,70 @@
+{
+  "run": "4a06e3e9",
+  "region": "us-east-1",
+  "index_prefix": "beacon",
+  "indices": {
+    "space": "beacon-search-spaces-v1",
+    "campaign": "beacon-campaigns-v1",
+    "observation": "beacon-observations-v1"
+  },
+  "checks": [
+    {
+      "check": "indices present with explicit mappings",
+      "ok": true,
+      "detail": "{\"space\": \"exists\", \"campaign\": \"exists\", \"observation\": \"exists\"}"
+    },
+    {
+      "check": "write a search space",
+      "ok": true,
+      "detail": "verify_space_4a06e3e9"
+    },
+    {
+      "check": "read back by id immediately after write",
+      "ok": true,
+      "detail": "0 ms, round-trip intact"
+    },
+    {
+      "check": "document becomes searchable",
+      "ok": true,
+      "detail": "observed NRT lag 15.28 s"
+    },
+    {
+      "check": "read-your-writes on the resume path",
+      "ok": true,
+      "detail": "get-by-id returned the campaign with no refresh wait"
+    },
+    {
+      "check": "search by campaign + outcome finds the skip",
+      "ok": true,
+      "detail": "1 hit(s); skip carries no y value"
+    },
+    {
+      "check": "observations fanned out one document per experiment",
+      "ok": true,
+      "detail": "3 documents (2 observed + 1 skipped)"
+    },
+    {
+      "check": "re-writing a campaign does not duplicate documents",
+      "ok": true,
+      "detail": "3 documents after 3 writes"
+    },
+    {
+      "check": "list returns ids via paginated search",
+      "ok": true,
+      "detail": "2 campaign id(s) listed"
+    },
+    {
+      "check": "strict mapping refuses an undeclared field",
+      "ok": true,
+      "detail": "rejected with strict_dynamic_mapping_exception"
+    },
+    {
+      "check": "delete removes the document",
+      "ok": true,
+      "detail": "get after delete raises"
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "recorded_at": 1792322344.181762
+}

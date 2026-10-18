@@ -1,0 +1,138 @@
+{
+  "run": "c011b571",
+  "backend_expected": "aoss",
+  "backend_line": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]",
+  "space_id": "space_67051b74d2c94386",
+  "campaign_id": "camp_5e613883b5e34662",
+  "seconds": 56.86,
+  "fingerprint": {
+    "cardinality": 1098,
+    "zero_shot_seed": 11,
+    "zero_shot_picks": [
+      {
+        "ligand": "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+        "base": "CCN(CC)CC",
+        "temperature": 106,
+        "loading": 5
+      },
+      {
+        "ligand": "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+        "base": "CCN(CC)CC",
+        "temperature": 108,
+        "loading": 5
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CCN(CC)CC",
+        "temperature": 120,
+        "loading": 2
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 92,
+        "loading": 5
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 97,
+        "loading": 1
+      },
+      {
+        "ligand": "COc1cccc(OC)c1-c1ccccc1P(C1CCCCC1)C1CCCCC1",
+        "base": "CCN(CC)CC",
+        "temperature": 106,
+        "loading": 5
+      }
+    ],
+    "observed_yields": [
+      30.0,
+      34.5,
+      39.0,
+      43.5,
+      48.0
+    ],
+    "best_y": 48.0,
+    "n_observations": 5,
+    "n_skipped": 1,
+    "acquisition": "ei",
+    "next_picks": [
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 60,
+        "loading": 1
+      }
+    ]
+  },
+  "n_pass": 13,
+  "n_total": 13,
+  "checks": [
+    {
+      "check": "server initialised",
+      "ok": true,
+      "detail": "2024-11-05"
+    },
+    {
+      "check": "startup log names a backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]"
+    },
+    {
+      "check": "startup log says 'aoss'",
+      "ok": true,
+      "detail": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]"
+    },
+    {
+      "check": "startup log does not name the other backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: aoss (AWS OpenSearch Serverless)  region=us-east-1  indices=beacon-campaigns-v1[exists], beacon-observations-v1[exists], beacon-search-spaces-v1[exists]"
+    },
+    {
+      "check": "create_search_space",
+      "ok": true,
+      "detail": "space_id ok, cardinality=1098"
+    },
+    {
+      "check": "get_search_space round-trips",
+      "ok": true,
+      "detail": "space_67051b74d2c94386"
+    },
+    {
+      "check": "zero_shot_recommendation",
+      "ok": true,
+      "detail": "6 picks, campaign ok"
+    },
+    {
+      "check": "record_observations",
+      "ok": true,
+      "detail": "n=5 best_y=48.0 rejected=0"
+    },
+    {
+      "check": "skip_recommendation",
+      "ok": true,
+      "detail": "n_skipped=1"
+    },
+    {
+      "check": "next_recommendation",
+      "ok": true,
+      "detail": "acquisition=ei, 1 pick(s)"
+    },
+    {
+      "check": "get_campaign sees 5 observed and 1 skipped",
+      "ok": true,
+      "detail": "observed=5 skipped=1 best_y=48.0"
+    },
+    {
+      "check": "list_campaigns finds it",
+      "ok": true,
+      "detail": "3 campaign(s) listed"
+    },
+    {
+      "check": "nothing was written to the local store dir",
+      "ok": true,
+      "detail": "/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-0vtlfa4d"
+    }
+  ]
+}

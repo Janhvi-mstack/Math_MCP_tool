@@ -1,0 +1,138 @@
+{
+  "run": "4a6b2b9e",
+  "backend_expected": "local",
+  "backend_line": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-ok6ysgdu",
+  "space_id": "space_fbf4966558354ec3",
+  "campaign_id": "camp_0ef45626c18c4f9b",
+  "seconds": 2.05,
+  "fingerprint": {
+    "cardinality": 1098,
+    "zero_shot_seed": 11,
+    "zero_shot_picks": [
+      {
+        "ligand": "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+        "base": "CCN(CC)CC",
+        "temperature": 106,
+        "loading": 5
+      },
+      {
+        "ligand": "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+        "base": "CCN(CC)CC",
+        "temperature": 108,
+        "loading": 5
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CCN(CC)CC",
+        "temperature": 120,
+        "loading": 2
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 92,
+        "loading": 5
+      },
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 97,
+        "loading": 1
+      },
+      {
+        "ligand": "COc1cccc(OC)c1-c1ccccc1P(C1CCCCC1)C1CCCCC1",
+        "base": "CCN(CC)CC",
+        "temperature": 106,
+        "loading": 5
+      }
+    ],
+    "observed_yields": [
+      30.0,
+      34.5,
+      39.0,
+      43.5,
+      48.0
+    ],
+    "best_y": 48.0,
+    "n_observations": 5,
+    "n_skipped": 1,
+    "acquisition": "ei",
+    "next_picks": [
+      {
+        "ligand": "CC(C)(C)P(C(C)(C)C)C(C)(C)C",
+        "base": "CN(C)C=O",
+        "temperature": 60,
+        "loading": 1
+      }
+    ]
+  },
+  "n_pass": 13,
+  "n_total": 13,
+  "checks": [
+    {
+      "check": "server initialised",
+      "ok": true,
+      "detail": "2024-11-05"
+    },
+    {
+      "check": "startup log names a backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-ok6ysgdu"
+    },
+    {
+      "check": "startup log says 'local JSON'",
+      "ok": true,
+      "detail": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-ok6ysgdu"
+    },
+    {
+      "check": "startup log does not name the other backend",
+      "ok": true,
+      "detail": "[maths_tools] store backend: local JSON (standalone; no AOSS variables in the environment)  root=/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-ok6ysgdu"
+    },
+    {
+      "check": "create_search_space",
+      "ok": true,
+      "detail": "space_id ok, cardinality=1098"
+    },
+    {
+      "check": "get_search_space round-trips",
+      "ok": true,
+      "detail": "space_fbf4966558354ec3"
+    },
+    {
+      "check": "zero_shot_recommendation",
+      "ok": true,
+      "detail": "6 picks, campaign ok"
+    },
+    {
+      "check": "record_observations",
+      "ok": true,
+      "detail": "n=5 best_y=48.0 rejected=0"
+    },
+    {
+      "check": "skip_recommendation",
+      "ok": true,
+      "detail": "n_skipped=1"
+    },
+    {
+      "check": "next_recommendation",
+      "ok": true,
+      "detail": "acquisition=ei, 1 pick(s)"
+    },
+    {
+      "check": "get_campaign sees 5 observed and 1 skipped",
+      "ok": true,
+      "detail": "observed=5 skipped=1 best_y=48.0"
+    },
+    {
+      "check": "list_campaigns finds it",
+      "ok": true,
+      "detail": "1 campaign(s) listed"
+    },
+    {
+      "check": "local JSON wrote the campaign to disk",
+      "ok": true,
+      "detail": "/var/folders/8m/3413fhts1fschdmy749xfysc0000gq/T/beacon-verify-ok6ysgdu"
+    }
+  ]
+}
