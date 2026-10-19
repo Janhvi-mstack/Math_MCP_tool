@@ -252,6 +252,10 @@ def select_backend(env: Optional[dict] = None,
     The log line carries the region and the index names. It never carries the
     endpoint host, the access key, or any secret.
 
+    ``BEACON_AOSS_CACHE_WRITES=false`` turns off the write-through cache.
+    **Any deployment running more than one process must set it**, because the
+    cache is per-process and is never invalidated by another process's write.
+
     ``BEACON_AOSS_MISS_GRACE`` overrides how long a ``get`` keeps retrying a
     key this process did not write. It exists so the behaviour can be turned
     off and the cross-process failure reproduced deliberately, as well as
@@ -271,16 +275,35 @@ def select_backend(env: Optional[dict] = None,
         except ValueError:
             raise StoreError(
                 "BEACON_AOSS_MISS_GRACE=%r is not a number of seconds" % raw)
+
+        # The write-through cache is sound only while ONE process writes a
+        # given key. It is a per-process cache with no cross-process
+        # invalidation, so under several workers each one keeps serving its
+        # own version of a campaign indefinitely: measured on a four-worker
+        # container, one worker reported 2 observations, another reported 0,
+        # and neither ever converged. Any multi-process deployment must set
+        # this false.
+        flag = (src.get("BEACON_AOSS_CACHE_WRITES") or "").strip().lower()
+        if flag in ("0", "false", "no", "off"):
+            cache_writes = False
+        elif flag in ("", "1", "true", "yes", "on"):
+            cache_writes = True
+        else:
+            raise StoreError(
+                "BEACON_AOSS_CACHE_WRITES=%r is not a boolean" % flag)
+
         try:
             cfg = load_aoss_config(env)
-            store = AOSSStore(cfg, miss_grace=grace)
+            store = AOSSStore(cfg, miss_grace=grace,
+                              cache_writes=cache_writes)
             state = store.ensure_indices()
         except ConfigError as exc:
             raise StoreError(f"AOSS configuration is unusable: {exc}") from exc
         if announce:
             _log_backend(
-                "aoss (AWS OpenSearch Serverless)  region=%s  indices=%s" % (
-                    cfg.region,
+                "aoss (AWS OpenSearch Serverless)  region=%s  cache=%s  "
+                "indices=%s" % (
+                    cfg.region, "on" if cache_writes else "off",
                     ", ".join("%s[%s]" % (name, state.get(k, "?"))
                               for k, name in sorted(
                                   store._indices.items(), key=lambda kv: kv[1]))))

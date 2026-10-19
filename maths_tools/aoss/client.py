@@ -210,11 +210,21 @@ class AOSSClient:
                     return {"raw": text}
 
             if status == 403:
+                # Do NOT assert a single cause here. AOSS answers 403 for an
+                # unsupported request parameter as readily as for a missing
+                # grant -- a conditional PUT with if_seq_no returns exactly
+                # this, and a message naming only the data access policy sent
+                # a reader looking at IAM for a feature that simply does not
+                # exist on serverless. List the causes, and show the body,
+                # which is the part that actually distinguishes them.
                 raise AOSSAccessDenied(
-                    "403 from AOSS. The request was signed with service name "
-                    f"{SERVICE_NAME!r}. If the signature is correct this means "
-                    "the signing principal is not granted aoss:APIAccessAll by "
-                    "the collection's data access policy.", body=text)
+                    f"403 from AOSS on {method} {path}. The request was signed "
+                    f"with service name {SERVICE_NAME!r}. Causes, in order of "
+                    "likelihood: the signing principal is not granted "
+                    "aoss:APIAccessAll by the collection's data access policy; "
+                    "the credentials are wrong or expired; or the request uses "
+                    "a parameter serverless does not support. Response body: "
+                    f"{text[:300]!r}", body=text)
             if status == 404:
                 raise AOSSNotFound(f"404 for {method} {path}: {text[:400]}")
             if status == 409:

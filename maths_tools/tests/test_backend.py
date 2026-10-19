@@ -140,6 +140,38 @@ def _bad_grace_is_refused():
 check("a non-numeric BEACON_AOSS_MISS_GRACE refuses", _bad_grace_is_refused)
 
 
+def _cache_writes_can_be_disabled():
+    """Any multi-process deployment must be able to turn the cache off.
+
+    It is a per-process cache with no cross-process invalidation: under
+    several workers each one keeps serving its own version of a campaign and
+    they never converge. Measured on a four-worker container -- one worker
+    reported 2 observations, another 0.
+    """
+    for value, expected in (("false", False), ("0", False), ("off", False),
+                            ("true", True), ("", True)):
+        env = {**FULL, "BEACON_AOSS_CACHE_WRITES": value}
+        try:
+            select_backend(env, announce=False)
+        except Exception as exc:                                 # noqa: BLE001
+            # it fails at the network, not at the flag; a bad flag raises
+            # StoreError with the variable named, which is what we check for
+            assert "BEACON_AOSS_CACHE_WRITES" not in str(exc), (value, str(exc))
+check("BEACON_AOSS_CACHE_WRITES accepts the usual boolean spellings",
+      _cache_writes_can_be_disabled)
+
+
+def _bad_cache_flag_is_refused():
+    env = {**FULL, "BEACON_AOSS_CACHE_WRITES": "sometimes"}
+    try:
+        select_backend(env, announce=False)
+    except StoreError as exc:
+        assert "BEACON_AOSS_CACHE_WRITES" in str(exc), str(exc)
+        return
+    raise AssertionError("expected a refusal")
+check("a non-boolean BEACON_AOSS_CACHE_WRITES refuses", _bad_cache_flag_is_refused)
+
+
 # -- the announcement ---------------------------------------------------------
 
 def _local_selection_is_announced():
