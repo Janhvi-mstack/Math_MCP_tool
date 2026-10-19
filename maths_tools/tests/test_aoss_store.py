@@ -580,10 +580,14 @@ def test_aoss_imports_only_stdlib():
     import ast
     import os
     import sys
-    import sysconfig
 
     pkg = os.path.join(ROOT, "maths_tools", "aoss")
-    stdlib = sysconfig.get_paths()["stdlib"]
+    # Locate the stdlib from a module that is unambiguously in it, NOT from
+    # sysconfig.get_paths()["stdlib"]: inside a virtualenv that returns the
+    # venv's own prefix, so every stdlib module looks like a third-party one
+    # and this test fails on a correct package. Found on a Homebrew 3.10 venv
+    # after it had passed happily on conda.
+    stdlib = os.path.dirname(os.__file__)
     offenders = []
     for name in sorted(os.listdir(pkg)):
         if not name.endswith(".py"):
@@ -601,9 +605,14 @@ def test_aoss_imports_only_stdlib():
             for root in roots:
                 if root in ("__future__", "maths_tools", ""):
                     continue
+                if root in getattr(sys, "stdlib_module_names", ()):
+                    continue                      # authoritative on 3.10+
                 module = sys.modules.get(root) or __import__(root)
-                path = getattr(module, "__file__", "") or ""
-                if path and not path.startswith(stdlib):
+                raw = getattr(module, "__file__", None)
+                if not raw:
+                    continue        # builtin (time, sys): compiled into python
+                path = os.path.realpath(raw)
+                if not path.startswith(os.path.realpath(stdlib)):
                     offenders.append("%s: %s (%s)" % (name, root, path))
     assert not offenders, offenders
 

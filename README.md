@@ -87,6 +87,7 @@ read credentials from disk itself. `.gitignore` covers `.env`.
 | `AWS_SESSION_TOKEN` | required **only** for temporary credentials (STS, an assumed role, SSO). Omit for a long-lived IAM user key. |
 | `AWS_DEFAULT_REGION` / `AWS_REGION` / `AOSS_REGION` | the signing region. Inferred from the endpoint host when that host carries it, so usually unnecessary. First one set wins, in that order. |
 | `BEACON_AOSS_INDEX_PREFIX` | prefix for this deployment's indices (default `beacon`). Staging and production can share a collection without sharing documents. |
+| `BEACON_AOSS_MISS_GRACE` | seconds a `get` keeps retrying a key this process did not write (default 15). See below. **Setting it to 0 restores fail-fast and will produce spurious "not found" results under multiple workers** — it exists for tuning, and for reproducing that failure deliberately. |
 | `BEACON_STORE_BACKEND` | `aoss` or `local`, to override the automatic choice |
 | `BEACON_STORE_DIR` | where local JSON writes (default `maths_tools/store_data/`) |
 | `BEACON_REFERENCE_SRC` | path to the reference protocol source; enables the benchmark-target guard in `metrics.py` |
@@ -214,9 +215,10 @@ a campaign that does exist tells a chemist their data is gone.
 instant, and an answer that takes fifteen seconds to say "no" is not useful.
 Only `get()` is worth waiting for.
 
-Both are switchable — `AOSSStore(cfg, miss_grace=0.0,
-read_after_write_timeout=0.0)` restores fail-fast, and `cache_writes=False`
-turns off the cache.
+Both are switchable. From the environment, `BEACON_AOSS_MISS_GRACE=0`
+restores fail-fast; in code, `AOSSStore(cfg, miss_grace=0.0,
+read_after_write_timeout=0.0)` does the same and `cache_writes=False` turns
+off the cache.
 
 ## Shape of a session
 

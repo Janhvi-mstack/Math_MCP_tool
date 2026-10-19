@@ -129,6 +129,17 @@ check("an unrecognised override refuses rather than guessing",
       _unknown_override_refuses)
 
 
+def _bad_grace_is_refused():
+    env = {**FULL, "BEACON_AOSS_MISS_GRACE": "soon"}
+    try:
+        select_backend(env, announce=False)
+    except StoreError as exc:
+        assert "BEACON_AOSS_MISS_GRACE" in str(exc), str(exc)
+        return
+    raise AssertionError("expected a refusal")
+check("a non-numeric BEACON_AOSS_MISS_GRACE refuses", _bad_grace_is_refused)
+
+
 # -- the announcement ---------------------------------------------------------
 
 def _local_selection_is_announced():

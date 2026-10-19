@@ -251,15 +251,29 @@ def select_backend(env: Optional[dict] = None,
 
     The log line carries the region and the index names. It never carries the
     endpoint host, the access key, or any secret.
+
+    ``BEACON_AOSS_MISS_GRACE`` overrides how long a ``get`` keeps retrying a
+    key this process did not write. It exists so the behaviour can be turned
+    off and the cross-process failure reproduced deliberately, as well as
+    tuned; see the README. Setting it to 0 restores fail-fast and WILL produce
+    spurious "not found" results under multiple workers.
     """
     kind = choose_backend(env)
 
     if kind == AOSS:
         from .aoss import AOSSStore, ConfigError
         from .aoss import load as load_aoss_config
+        from .aoss.store import DEFAULT_MISS_GRACE
+        src = os.environ if env is None else env
+        raw = (src.get("BEACON_AOSS_MISS_GRACE") or "").strip()
+        try:
+            grace = float(raw) if raw else DEFAULT_MISS_GRACE
+        except ValueError:
+            raise StoreError(
+                "BEACON_AOSS_MISS_GRACE=%r is not a number of seconds" % raw)
         try:
             cfg = load_aoss_config(env)
-            store = AOSSStore(cfg)
+            store = AOSSStore(cfg, miss_grace=grace)
             state = store.ensure_indices()
         except ConfigError as exc:
             raise StoreError(f"AOSS configuration is unusable: {exc}") from exc
